@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ parent() }} Détails de l'annonce
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold mb-4">
+            Détails de l'annonce
+        </h1>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body">
+                        <h2 class="text-primary">{{ annonce.nom | capitalize }}</h2>
+                        <p><strong>Type : </strong>{{ annonce.type | capitalize }}</p>
+                        <p><strong>Description : </strong>{{ annonce.description }}</p>
+                        <p><strong>Prix : </strong>{{ annonce.prix }} €</p>
+                        <p><strong>Mis en ligne le : </strong>{{ annonce.dateEnvoi | date('d-m-Y à H:i:s') }}</p>
+
+                        <!-- Section Utilisateur -->
+                        <hr>
+                        <h5><strong>Informations de l'utilisateur :</strong></h5>
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item"><strong>Nom : </strong>{{ user.prenom }} {{ user.nom }}</li>
+                            <li class="list-group-item"><strong>Email : </strong>{{ user.email }}</li>
+                        </ul>
+
+                        <!-- Image de l'annonce -->
+                        <div class="text-center">
+                            {% if annonce.photo %}
+                                <img src="{{ asset('uploads/' ~ annonce.photo) }}" alt="{{ annonce.nom }}" class="img-fluid rounded shadow-lg" style="max-width: 100%; height: auto; transition: transform 0.3s ease-in-out;">
+                            {% else %}
+                                <p class="text-muted">Pas d'image disponible</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Effet de zoom sur l'image au survol -->
+    <script>
+        const img = document.querySelector('img');
+        if (img) {
+            img.addEventListener('mouseover', function() {
+                this.style.transform = 'scale(1.1)';
+            });
+            img.addEventListener('mouseout', function() {
+                this.style.transform = 'scale(1)';
+            });
+        }
+    </script>
+{% endblock %}

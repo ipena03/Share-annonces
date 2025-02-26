@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ parent() }} Liste des users{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">Liste des users</h1>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 bg-white p-4 m-0 text-primary">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr class="fw-bold text-primary">
+                            <th scope="col">Email</th>
+                            <th scope="col">roles</th>
+                            <th scope="col">Date d'inscription</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users  |sort((a, b) =>b.dateEnvoi <=> a.dateEnvoi) %}
+                        <tr class="{{ cycle(['table-primary', 'table-secondary'], loop.index0) }}">
+                            <td>{{ user.email | lower }}</td>
+                            <td>{{ user.roles | join(', ') | lower }}</td>
+                            <td>{{ user.dateEnvoi |date("d-m-Y à H:i:s") }}</td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

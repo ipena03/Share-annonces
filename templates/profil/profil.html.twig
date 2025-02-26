@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">Mon profil</h1>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 bg-white p-4 m-0 shadow rounded">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr class="bg-light text-dark text-center">
+                                <th scope="col">Informations</th>
+                                <th scope="col">Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Nom</td>
+                                <td>{{ user.nom }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Prénom</td>
+                                <td>{{ user.prenom }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Email</td>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Rôle</td>
+                                <td>{{ user.roles | join(', ') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="mt-4">Mes Annonces</h3>
+                {% if annonces is not empty %}
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nom</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Prix</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for annonce in annonces %}
+                                <tr>
+                                    <td>{{ annonce.nom }}</td>
+                                    <td>{{ annonce.type }}</td>
+                                    <td>{{ annonce.prix }} €</td>
+                                    <td>
+                                        <a href="{{ path('app_modifier_annonces', {'id': annonce.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                        <a href="{{ path('app_supprimer_annonces', {'id': annonce.id}) }}" class="btn btn-danger btn-sm">Supprimer</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Aucune annonce disponible.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

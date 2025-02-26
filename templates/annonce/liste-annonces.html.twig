@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ parent() }} Liste des annonces
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">
+            Liste des annonces
+        </h1>
+
+        <!-- Section des filtres (Type et Tri) -->
+        <div class="d-flex justify-content-between mb-4">
+            <form method="get" action="{{ path('app_liste-annonces') }}" class="d-flex">
+                <!-- Filtre par Type -->
+                <select name="type" class="form-select me-2">
+                    <option value="">Tous les types</option>
+                    <option value="location" {% if app.request.query.get('type') == 'location' %}selected{% endif %}>Location</option>
+                    <option value="prestations" {% if app.request.query.get('type') == 'prestations' %}selected{% endif %}>Prestation de service</option>
+                </select>
+
+                <!-- Filtre par Tri -->
+                <select name="sort_by" class="form-select me-2">
+                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Trier par Date</option>
+                    <option value="prix" {% if sort_by == 'prix' %}selected{% endif %}>Trier par Prix</option>
+                </select>
+
+                <select name="sort_order" class="form-select me-2">
+                    <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Croissant</option>
+                    <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Décroissant</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+            </form>
+        </div>
+
+        <!-- Affichage des cartes d'annonces -->
+        <div class="row">
+            {% for annonce in annonces %}
+                <div class="col-12 col-md-4 mb-4">
+                    <div class="card">
+                        <img src="{{ asset('uploads/' ~ annonce.photo) }}" class="card-img-top" alt="{{ annonce.nom }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ annonce.nom | capitalize }}</h5>
+                            <p class="card-text">
+                                <strong>Type:</strong> {{ annonce.type | capitalize }} <br>
+                                <strong>Description:</strong> {{ annonce.description | slice(0, 100) ~ '...' }} <br>
+                                <strong>Prix:</strong> {{ annonce.prix }} €
+                            </p>
+                            <a href="{{ path('app_details_annonce', { 'id': annonce.id }) }}" class="btn btn-info">Détails</a>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Mis en ligne le: {{ annonce.dateEnvoi | date('d-m-Y à H:i:s') }}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucune annonce trouvée.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

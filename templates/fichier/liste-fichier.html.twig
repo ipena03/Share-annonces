@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {{ parent() }} Liste des fichiers
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">
+            Liste des fichiers
+        </h1>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 bg-white p-4 m-0 text-primary">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr class="fw-bold text-primary">
+                                <th scope="col">Nom</th>
+                                <th scope="col">Fichier</th>
+                                <th scope="col">Date d'envoi</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fichier in fichiers | sort((a, b) => b.dateEnvoi <=> a.dateEnvoi) %}
+                                <tr class="{{ cycle(['table-primary', 'table-secondary'], loop.index0) }}">
+                                    <td>{{ fichier.nom | capitalize }}</td>
+                                    <td>{{ fichier.routeFichier | capitalize }}</td>
+                                    <td>{{ fichier.dateEnvoi | date("d-m-Y à H:i:s") }}</td>
+                                    <td>
+                                        <a href="{{ path('app_download', {'filename': fichier.routeFichier}) }}" class="btn btn-primary btn-sm">Télécharger</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

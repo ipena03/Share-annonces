@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>
+			{% block title %}Share -
+			{% endblock %}
+		</title>
+
+		{% block stylesheets %}
+			<link href="https://bootswatch.com/5/lumen/bootstrap.min.css" rel="stylesheet">
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+		{% endblock %}
+
+		<!-- Ajouter ici le script Google reCAPTCHA -->
+		<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+	</head>
+	<body>
+
+		<nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="{{ path('app_accueil') }}">Share</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarColor03">
+					<ul class="navbar-nav me-auto">
+						<li class="nav-item">
+							<a class="nav-link active" href="{{ path('app_accueil') }}">Home
+								<span class="visually-hidden">(current)</span>
+							</a>
+						</li>
+
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+								Contact
+							</a>
+							<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+								<a class="dropdown-item" href="{{ path('app_contact') }}">Ajout contact</a>
+							</div>
+						</li>
+
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+								Fichiers
+							</a>
+							<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+								<a class="dropdown-item" href="{{ path('app_fichier') }}">Ajout fichier</a>
+								<a class="dropdown-item" href="{{ path('app_liste-fichier') }}">Liste fichiers</a>
+							</div>
+						</li>
+
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+								Annonces
+							</a>
+							<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+								<a class="dropdown-item" href="{{ path('app_annonces') }}">Ajout annonce</a>
+								<a class="dropdown-item" href="{{ path('app_liste-annonces') }}">Liste annonces</a>
+							</div>
+						</li>
+
+						{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MOD') %}
+							<li class="nav-item dropdown">
+								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+									Administrateur
+								</a>
+								<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+									<a class="dropdown-item" href="{{ path('app_liste-contacts') }}">Liste contacts</a>
+									<a class="dropdown-item" href="{{ path('app_liste-users') }}">Liste utilisateurs</a>
+									<a class="dropdown-item" href="{{ path('admin_logs') }}">logs</a>
+								</div>
+							</li>
+						{% endif %}
+					</ul>
+
+
+					<ul class="navbar-nav ms-3">
+						{% if not is_granted('IS_AUTHENTICATED_FULLY') %}
+							<li class="nav-item">
+								<a class="nav-link" href="{{ path('app_login') }}">Se connecter</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" href="{{ path('app_register') }}">S'inscrire</a>
+							</li>
+						{% else %}
+							<li class="nav-item">
+								<a class="nav-link" href="{{ path('app_logout') }}">
+									{{ app.user.email }}
+									<i class="bi bi-x-circle-fill"></i>
+								</a>
+							</li>
+
+							<!-- Icône Profil -->
+							<li class="nav-item">
+								<a class="nav-link" href="{{ path('app_profile') }}">
+									<i class="bi bi-person-circle" style="font-size: 1.5rem;"></i>
+								</a>
+							</li>
+						{% endif %}
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+
+		{% for message in app.flashes('notice') %}
+			<h2 class="alert alert-warning text-center mt-4 mb-4" role="alert">
+				{{ message }}
+			</h2>
+		{% endfor %}
+
+		{% block body %}
+			<h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">SHARE</h1>
+			<h2 class="text-center text-secondary mb-4 pb-4 display-2">partagez vos fichiers</h2>
+			<h2 class="text-center">
+				<i class="bi bi-cloud-arrow-up-fill text-primary"></i>
+				<i class="bi bi-folder text-secondary"></i>
+				<i class="bi bi-cloud-arrow-down-fill text-warning"></i>
+			</h2>
+		{% endblock %}
+
+		{% block javascripts %}
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+		{% endblock %}
+	</body>
+</html></body></html>
