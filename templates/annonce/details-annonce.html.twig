@@ -5,53 +5,208 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container">
-        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold mb-4">
-            Détails de l'annonce
-        </h1>
+<div class="container py-4 my-4">
+    <h1 class="text-center mt-4 pt-4 display-1 fw-bold">Détails de l'annonce</h1>
+    <h2 class="text-center mb-4 pb-4 display-2">découvrez cette offre</h2>
+    
+    <div class="text-center mb-4">
+        <i class="bi bi-tag-fill text-primary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-info-circle text-secondary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-star text-warning fs-1 mx-2 icon-animation"></i>
+    </div>
 
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body">
-                        <h2 class="text-primary">{{ annonce.nom | capitalize }}</h2>
-                        <p><strong>Type : </strong>{{ annonce.type | capitalize }}</p>
-                        <p><strong>Description : </strong>{{ annonce.description }}</p>
-                        <p><strong>Prix : </strong>{{ annonce.prix }} €</p>
-                        <p><strong>Mis en ligne le : </strong>{{ annonce.dateEnvoi | date('d-m-Y à H:i:s') }}</p>
-
-                        <!-- Section Utilisateur -->
-                        <hr>
-                        <h5><strong>Informations de l'utilisateur :</strong></h5>
-                        <ul class="list-group mb-3">
-                            <li class="list-group-item"><strong>Nom : </strong>{{ user.prenom }} {{ user.nom }}</li>
-                            <li class="list-group-item"><strong>Email : </strong>{{ user.email }}</li>
-                        </ul>
-
-                        <!-- Image de l'annonce -->
-                        <div class="text-center">
-                            {% if annonce.photo %}
-                                <img src="{{ asset('uploads/' ~ annonce.photo) }}" alt="{{ annonce.nom }}" class="img-fluid rounded shadow-lg" style="max-width: 100%; height: auto; transition: transform 0.3s ease-in-out;">
-                            {% else %}
-                                <p class="text-muted">Pas d'image disponible</p>
-                            {% endif %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="position-relative">
+                    {% if annonce.photo %}
+                        <img src="{{ asset('uploads/' ~ annonce.photo) }}" alt="{{ annonce.nom }}" class="img-fluid rounded-top" style="width: 100%; height: 300px; object-fit: cover;">
+                        <div class="position-absolute top-0 end-0 bg-primary text-white px-2 py-1 m-2 rounded">
+                            {{ annonce.prix }} €
                         </div>
+                    {% else %}
+                        <div class="bg-light text-center py-5">
+                            <p class="text-muted">Pas d'image disponible</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <!-- Nom de l'annonce -->
+                    <h2 class="text-primary mb-3">{{ annonce.nom | capitalize }}</h2>
+                    <div class="mb-3">
+                        {% if annonce.type == 'location' %}
+                            <span class="badge bg-warning text-dark">{{ annonce.type | capitalize }}</span>
+                        {% else %}
+                            <span class="badge bg-success text-white">{{ annonce.type | capitalize }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="lead">{{ annonce.description }}</p>
+                    <p><strong>Mis en ligne le : </strong>{{ annonce.dateEnvoi | date('d-m-Y à H:i:s') }}</p>
+
+                    <!-- Informations de l'utilisateur -->
+                    <hr>
+                    <h5 class="mt-4 mb-3 text-secondary"><strong>Informations de l'utilisateur :</strong></h5>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item"><strong>Nom : </strong>{{ user.prenom }} {{ user.nom }}</li>
+                        <li class="list-group-item"><strong>Email : </strong>{{ user.email }}</li>
+                    </ul>
+
+                    <!-- Affichage de la notation -->
+                    <hr>
+                    <h5 class="mt-4 mb-3 text-secondary"><strong>Évaluation de l'annonce :</strong></h5>
+                    {% set averageRating = annonce.ratings|length > 0 ? 
+                        (annonce.ratings|reduce((carry, rating) => carry + rating.rating) / annonce.ratings|length)|round(1) : 
+                        0 
+                    %}
+
+                    <!-- Affichage des étoiles comme dans la liste des annonces -->
+                    <div class="mb-3">
+                        {% if averageRating > 0 %}
+                            <div class="d-flex align-items-center">
+                                <span class="text-warning">
+                                    {% for i in 1..5 %}
+                                        {% if i <= averageRating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span class="ms-2">{{ averageRating }} / 5</span>
+                                <span class="ms-2 text-muted">({{ annonce.ratings|length }} évaluation(s))</span>
+                            </div>
+                        {% else %}
+                            <span class="text-muted">Pas d'évaluation</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formulaire de notation avec des étoiles interactives -->
+                    {% if app.user %}
+                        {% set userRating = null %}
+                        {% for rating in annonce.ratings %}
+                            {% if rating.user.id == app.user.id %}
+                                {% set userRating = rating %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if not userRating %}
+                            <hr>
+                            <h5 class="mt-4 mb-3"><strong>Évaluez cette annonce :</strong></h5>
+                            <form method="POST" action="{{ path('app_details_annonce', {'id': annonce.id}) }}" id="rating-form">
+                                <div class="star-rating-form mb-3">
+                                    <input type="hidden" name="rating" id="selected-rating" value="" required>
+                                    <div class="d-flex align-items-center">
+                                        <div class="star-container">
+                                            {% for i in 1..5 %}
+                                                <i class="far fa-star star-rating-input" data-rating="{{ i }}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="ms-3" id="rating-text">Cliquez sur une étoile pour noter</span>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3 icon-animation" id="submit-rating" disabled>
+                                    <i class="bi bi-star-fill me-2"></i>Soumettre votre évaluation
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="mb-3">
+                                <p><strong>Votre évaluation : </strong></p>
+                                <div class="d-flex align-items-center">
+                                    <span class="text-warning">
+                                        {% for i in 1..5 %}
+                                            {% if i <= userRating.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span class="ms-2">{{ userRating.rating }} / 5</span>
+                                </div>
+                            </div>
+
+                            <!-- Bouton pour supprimer la note -->
+                            <form method="POST" action="{{ path('app_supprimer_rating', {'id': userRating.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer votre évaluation ?');">
+                                <button type="submit" class="btn btn-danger mt-3 icon-animation">
+                                    <i class="bi bi-trash me-2"></i>Supprimer votre évaluation
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- Bouton retour -->
+                    <div class="mt-4 text-center">
+                        <a href="{{ path('app_liste-annonces') }}" class="btn btn-secondary btn-lg icon-animation">
+                            <i class="bi bi-arrow-left me-2"></i>Retour à la liste
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Effet de zoom sur l'image au survol -->
-    <script>
-        const img = document.querySelector('img');
-        if (img) {
-            img.addEventListener('mouseover', function() {
-                this.style.transform = 'scale(1.1)';
-            });
-            img.addEventListener('mouseout', function() {
-                this.style.transform = 'scale(1)';
-            });
-        }
-    </script>
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sélectionner tous les éléments étoiles pour la notation
+    const stars = document.querySelectorAll('.star-rating-input');
+    const ratingInput = document.getElementById('selected-rating');
+    const submitButton = document.getElementById('submit-rating');
+    const ratingText = document.getElementById('rating-text');
+    
+    // Ajouter des écouteurs d'événements à chaque étoile
+    stars.forEach(star => {
+        // Effet de survol
+        star.addEventListener('mouseover', function() {
+            const rating = this.getAttribute('data-rating');
+            highlightStars(rating);
+        });
+        
+        // Rétablir l'état lors de la sortie de survol
+        star.addEventListener('mouseout', function() {
+            const currentRating = ratingInput.value;
+            if (currentRating) {
+                highlightStars(currentRating);
+            } else {
+                resetStars();
+            }
+        });
+        
+        // Sélectionner une note
+        star.addEventListener('click', function() {
+            const rating = this.getAttribute('data-rating');
+            ratingInput.value = rating;
+            highlightStars(rating);
+            ratingText.textContent = rating + ' / 5';
+            submitButton.disabled = false;
+        });
+    });
+    
+    // Fonction pour mettre en évidence les étoiles jusqu'à un certain indice
+    function highlightStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+            } else {
+                star.classList.remove('fas');
+                star.classList.add('far');
+            }
+        });
+    }
+    
+    // Fonction pour réinitialiser toutes les étoiles
+    function resetStars() {
+        stars.forEach(star => {
+            star.classList.remove('fas');
+            star.classList.add('far');
+        });
+        ratingText.textContent = 'Cliquez sur une étoile pour noter';
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}

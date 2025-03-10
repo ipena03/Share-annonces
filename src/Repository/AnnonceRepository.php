@@ -42,4 +42,35 @@ class AnnonceRepository extends ServiceEntityRepository
     
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * Récupère les annonces les mieux notées
+     * 
+     * @param int $limit Nombre d'annonces à récupérer
+     * @return Annonce[]
+     */
+    public function findTopRated(int $limit = 3): array
+    {
+        // Cette requête DQL va récupérer les annonces avec leur note moyenne
+        $entityManager = $this->getEntityManager();
+        
+        $query = $entityManager->createQuery(
+            'SELECT a, AVG(r.rating) as avgRating
+            FROM App\Entity\Annonce a
+            JOIN a.ratings r
+            GROUP BY a.id
+            HAVING COUNT(r.id) > 0
+            ORDER BY avgRating DESC'
+        )->setMaxResults($limit);
+        
+        $results = $query->getResult();
+        
+        // Extraire juste les objets Annonce du résultat
+        $annonces = [];
+        foreach ($results as $result) {
+            $annonces[] = $result[0]; // L'entité Annonce est à l'index 0
         }
+        
+        return $annonces;
+    }
+}

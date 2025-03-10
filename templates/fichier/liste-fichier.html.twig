@@ -1,42 +1,131 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}
-    {{ parent() }} Liste des fichiers
-{% endblock %}
+{% block title %}{{ parent() }} Liste des fichiers{% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">
-            Liste des fichiers
-        </h1>
+<div class="container py-4 my-4">
+    <h1 class="text-center mt-4 pt-4">Liste des fichiers</h1>
+    <h2 class="text-center mb-4">documents partagés</h2>
 
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8 bg-white p-4 m-0 text-primary">
+    {# templates/fichier/liste-fichier.html.twig #}
+{% if is_admin is defined and is_admin %}
+    <div class="alert alert-info">Mode modérateur - Tous les fichiers sont visibles</div>
+{% else %}
+    <div class="alert alert-info">Vos fichiers personnels</div>
+{% endif %}
+
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 bg-white p-4 rounded-3 shadow-sm">
+            {% if fichiers is empty %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Aucun fichier disponible pour le moment.
+                </div>
+            {% else %}
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
-                            <tr class="fw-bold text-primary">
-                                <th scope="col">Nom</th>
-                                <th scope="col">Fichier</th>
-                                <th scope="col">Date d'envoi</th>
-                                <th scope="col">Action</th>
+                            <tr class="table-primary">
+                                <th>Nom</th>
+                                <th>Fichier</th>
+                                <th>Date d'envoi</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for fichier in fichiers | sort((a, b) => b.dateEnvoi <=> a.dateEnvoi) %}
-                                <tr class="{{ cycle(['table-primary', 'table-secondary'], loop.index0) }}">
-                                    <td>{{ fichier.nom | capitalize }}</td>
-                                    <td>{{ fichier.routeFichier | capitalize }}</td>
-                                    <td>{{ fichier.dateEnvoi | date("d-m-Y à H:i:s") }}</td>
+                                <tr>
                                     <td>
-                                        <a href="{{ path('app_download', {'filename': fichier.routeFichier}) }}" class="btn btn-primary btn-sm">Télécharger</a>
+                                        <i class="bi bi-file-earmark me-2"></i>
+                                        {{ fichier.nom | capitalize }}
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 150px;">
+                                        <small class="text-muted">{{ fichier.routeFichier }}</small>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-calendar-date me-1"></i>
+                                        {{ fichier.dateEnvoi | date("d-m-Y") }}
+                                        <small class="text-muted">{{ fichier.dateEnvoi | date("H:i") }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ path('app_download', {'id': fichier.id}) }}, {'filename': fichier.routeFichier}) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="bi bi-download me-1"></i>Télécharger
+                                        </a>
+                                        
+                                        {% if is_granted('ROLE_ADMIN') %}
+                                            <a href="#" class="btn btn-outline-danger btn-sm ms-1" 
+                                               data-bs-toggle="modal" data-bs-target="#deleteModal{{ fichier.id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            
+                                            <div class="modal fade" id="deleteModal{{ fichier.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Confirmation de suppression</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            Êtes-vous sûr de vouloir supprimer le fichier <strong>{{ fichier.nom }}</strong> ?
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                            <a href="{{ path('app_delete_fichier', {'id': fichier.id}) }}" class="btn btn-danger">
+                                                                <i class="bi bi-trash me-1"></i>Supprimer
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                
+                {% if pagination is defined %}
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Navigation des pages">
+                        <ul class="pagination">
+                            {% if pagination.currentPage > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('app_liste-fichier', {'page': pagination.currentPage - 1}) }}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for i in 1..pagination.pageCount %}
+                                <li class="page-item {{ pagination.currentPage == i ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ path('app_liste-fichier', {'page': i}) }}">
+                                        {{ i }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if pagination.currentPage < pagination.pageCount %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('app_liste-fichier', {'page': pagination.currentPage + 1}) }}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            {% endif %}
+            
+            <div class="d-flex justify-content-end mt-3">
+                <a href="{{ path('app_fichier') }}" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-2"></i>Ajouter un fichier
+                </a>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

@@ -13,6 +13,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Form\FileType;
 use App\Entity\Fichier;
 
+use App\Repository\AnnonceRepository;
+
+
+use App\Entity\Log;
 
 use App\Form\AnnonceType;
 use App\Entity\Annonce;
@@ -25,10 +29,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted; // Pour restreindre l'a
 
 final class BaseController extends AbstractController
 {
-    #[Route('/', name: 'app_accueil')]    
-    public function index(): Response
+    #[Route('/', name: 'app_accueil')]
+    public function index(AnnonceRepository $annonceRepository): Response
     {
+        // Récupérer les 3 annonces les mieux notées
+        $topAnnonces = $annonceRepository->findTopRated(3);
+        
         return $this->render('base/index.html.twig', [
+            'topAnnonces' => $topAnnonces,
         ]);
     }
 
@@ -76,14 +84,21 @@ final class BaseController extends AbstractController
  #[Route('/private-fichier', name: 'app_fichier')]
  public function fichier(Request $request, EntityManagerInterface $em): Response
  {
-     $fichier = new Fichier(); // Crée une nouvelle instance de l'entité
+     // Crée une nouvelle instance de l'entité Fichier
+     $fichier = new Fichier();
      $form = $this->createForm(FileType::class, $fichier);
  
      $form->handleRequest($request);
  
      if ($form->isSubmitted() && $form->isValid()) {
-         // Gestion du fichier uploadé
-         $uploadedFile = $form->get('file')->getData(); // Récupère le fichier du formulaire
+         // Vérifier que l'utilisateur est connecté
+         $user = $this->getUser();
+         if (!$user) {
+             throw $this->createAccessDeniedException('Vous devez être connecté pour envoyer un fichier.');
+         }
+ 
+         // Récupère le fichier du formulaire
+         $uploadedFile = $form->get('file')->getData();
          if ($uploadedFile) {
              // Générer un nom unique pour le fichier
              $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
@@ -99,9 +114,11 @@ final class BaseController extends AbstractController
              $fichier->setRouteFichier($newFilename); // Sauvegarde le chemin relatif
          }
  
-         // Sauvegarde dans la base de données
-         $fichier->setDateEnvoi(new \Datetime());
-
+         // Associer l'utilisateur au fichier
+         $fichier->setUser($user); // L'utilisateur connecté est associé au fichier
+         $fichier->setDateEnvoi(new \DateTime());
+ 
+         // Sauvegarder le fichier dans la base de données
          $em->persist($fichier);
          $em->flush();
  
@@ -117,63 +134,75 @@ final class BaseController extends AbstractController
      ]);
  }
 
-
+ 
+ 
  #[Route('/private-annonces', name: 'app_annonces')]
- #[IsGranted('ROLE_USER')] // Empêche les utilisateurs non connectés d'accéder à la page
- public function annonces(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, Security $security): Response
- {
-     $user = $security->getUser(); // Récupérer l'utilisateur connecté
+#[IsGranted('ROLE_USER')] // Empêche les utilisateurs non connectés d'accéder à la page
+public function annonces(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, Security $security): Response
+{
+    $user = $security->getUser(); // Récupérer l'utilisateur connecté
  
-     if (!$user) {
-         throw $this->createAccessDeniedException('Vous devez être connecté pour poster une annonce.');
-     }
+    if (!$user) {
+        throw $this->createAccessDeniedException('Vous devez être connecté pour poster une annonce.');
+    }
  
-     $annonce = new Annonce();
-     $form = $this->createForm(AnnonceType::class, $annonce);
+    $annonce = new Annonce();
+    $form = $this->createForm(AnnonceType::class, $annonce);
  
-     if ($request->isMethod('POST')) {
-         $form->handleRequest($request);
+    if ($request->isMethod('POST')) {
+        $form->handleRequest($request);
  
-         if ($form->isSubmitted() && $form->isValid()) {
-             $annonce->setDateEnvoi(new \Datetime());
-             $annonce->setUser($user); // Associer l'annonce à l'utilisateur connecté
+        if ($form->isSubmitted() && $form->isValid()) {
+            $annonce->setDateEnvoi(new \Datetime());
+            $annonce->setUser($user); // Associer l'annonce à l'utilisateur connecté
  
-             // Gérer l'image uploadée
-             $imageFile = $form->get('photo')->getData();
+            // Gérer l'image uploadée
+            $imageFile = $form->get('photo')->getData();
  
-             if ($imageFile) {
-                 // Créer un nom de fichier unique
-                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                 $safeFilename = $slugger->slug($originalFilename);
-                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+            if ($imageFile) {
+                // Créer un nom de fichier unique
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
  
-                 try {
-                     // Déplacer le fichier dans le répertoire configuré
-                     $imageFile->move(
-                         $this->getParameter('upload_directory'), // Utilisation de `upload_directory`
-                         $newFilename
-                     );
-                 } catch (\Exception $e) {
-                     $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image.');
-                     return $this->redirectToRoute('app_annonces');
-                 }
+                try {
+                    // Déplacer le fichier dans le répertoire configuré
+                    $imageFile->move(
+                        $this->getParameter('upload_directory'), // Utilisation de `upload_directory`
+                        $newFilename
+                    );
+                } catch (\Exception $e) {
+                    $this->addFlash('danger', 'Erreur lors de l\'upload de l\'image.');
+                    return $this->redirectToRoute('app_annonces');
+                }
  
-                 // Associer le nom du fichier à l'entité
-                 $annonce->setPhoto($newFilename);
-             }
+                // Associer le nom du fichier à l'entité
+                $annonce->setPhoto($newFilename);
+            }
  
-             $em->persist($annonce);
-             $em->flush();
+            $em->persist($annonce);
+            $em->flush();
+            
+            // Création du log pour l'ajout d'annonce
+            $log = new Log();
+            $log->setAction('ajout_annonce');
+            $log->setUsername($user->getUserIdentifier());
+            $log->setTimestamp(new \DateTime());
+            $log->setDetails('Annonce créée : ' . $annonce->getNom());
+            
+            // Enregistrement du log dans la base de données
+            $em->persist($log);
+            $em->flush();
  
-             $this->addFlash('notice', 'Annonce créée avec succès !');
-             return $this->redirectToRoute('app_annonces');
-         }
-     }
+            $this->addFlash('notice', 'Annonce créée avec succès !');
+            return $this->redirectToRoute('app_annonces');
+        }
+    }
  
-     return $this->render('annonce/annonces.html.twig', [
-         'form' => $form->createView(),
-     ]);
- }
+    return $this->render('annonce/annonces.html.twig', [
+        'form' => $form->createView(),
+    ]);
+}
   
  
 

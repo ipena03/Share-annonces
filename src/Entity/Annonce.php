@@ -5,8 +5,9 @@ namespace App\Entity;
 use App\Repository\AnnonceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
 use App\Entity\User;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: AnnonceRepository::class)]
 class Annonce
@@ -37,6 +38,15 @@ class Annonce
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'annonces')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
+    // Nouvelle propriété pour les évaluations (ratings) associées à l'annonce
+    #[ORM\OneToMany(mappedBy: 'announcement', targetEntity: Rating::class)]
+    private Collection $ratings;
+
+    public function __construct()
+    {
+        $this->ratings = new ArrayCollection();
+    }
 
     // GETTERS ET SETTERS
     public function getId(): ?int
@@ -118,6 +128,36 @@ class Annonce
     public function setUser(?User $user): static
     {
         $this->user = $user;
+        return $this;
+    }
+
+    // Getter pour la propriété ratings
+    public function getRatings(): Collection
+    {
+        return $this->ratings;
+    }
+
+    // Ajouter une méthode pour ajouter un rating à l'annonce
+    public function addRating(Rating $rating): static
+    {
+        if (!$this->ratings->contains($rating)) {
+            $this->ratings[] = $rating;
+            $rating->setAnnouncement($this);
+        }
+
+        return $this;
+    }
+
+    // Méthode pour supprimer un rating de l'annonce
+    public function removeRating(Rating $rating): static
+    {
+        if ($this->ratings->removeElement($rating)) {
+            // Si l'élément a été retiré, on annule la relation
+            if ($rating->getAnnouncement() === $this) {
+                $rating->setAnnouncement(null);
+            }
+        }
+
         return $this;
     }
 }

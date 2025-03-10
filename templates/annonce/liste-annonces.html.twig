@@ -5,19 +5,24 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">
-            Liste des annonces
-        </h1>
+    <div class="container py-4 my-4">
+        <h1 class="text-center mt-4 pt-4 display-1 fw-bold">Liste des annonces</h1>
+        <h2 class="text-center mb-4 pb-4 display-2">découvrez toutes nos offres</h2>
+        
+        <div class="text-center mb-4">
+            <i class="bi bi-tag-fill text-primary fs-1 mx-2 icon-animation"></i>
+            <i class="bi bi-search text-secondary fs-1 mx-2 icon-animation"></i>
+            <i class="bi bi-calendar-check text-success fs-1 mx-2 icon-animation"></i>
+        </div>
 
-        <!-- Section des filtres (Type et Tri) -->
-        <div class="d-flex justify-content-between mb-4">
-            <form method="get" action="{{ path('app_liste-annonces') }}" class="d-flex">
+        <!-- Section des filtres (Type et Tri) sur une seule ligne -->
+        <div class="mb-4">
+            <form method="get" action="{{ path('app_liste-annonces') }}" class="d-flex flex-nowrap">
                 <!-- Filtre par Type -->
                 <select name="type" class="form-select me-2">
                     <option value="">Tous les types</option>
                     <option value="location" {% if app.request.query.get('type') == 'location' %}selected{% endif %}>Location</option>
-                    <option value="prestations" {% if app.request.query.get('type') == 'prestations' %}selected{% endif %}>Prestation de service</option>
+                    <option value="prestation de service" {% if app.request.query.get('type') == 'prestation de service' %}selected{% endif %}>Prestation de service</option>
                 </select>
 
                 <!-- Filtre par Tri -->
@@ -31,33 +36,75 @@
                     <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Décroissant</option>
                 </select>
 
-                <button type="submit" class="btn btn-primary">Filtrer</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel-fill me-2"></i>Filtrer
+                </button>
             </form>
         </div>
 
         <!-- Affichage des cartes d'annonces -->
         <div class="row">
             {% for annonce in annonces %}
+                {% set averageRating = annonce.ratings|length > 0 ? 
+                    (annonce.ratings|reduce((carry, rating) => carry + rating.rating) / annonce.ratings|length)|round(1) : 
+                    0 
+                %}
+
                 <div class="col-12 col-md-4 mb-4">
-                    <div class="card">
-                        <img src="{{ asset('uploads/' ~ annonce.photo) }}" class="card-img-top" alt="{{ annonce.nom }}" style="height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ annonce.nom | capitalize }}</h5>
-                            <p class="card-text">
-                                <strong>Type:</strong> {{ annonce.type | capitalize }} <br>
-                                <strong>Description:</strong> {{ annonce.description | slice(0, 100) ~ '...' }} <br>
-                                <strong>Prix:</strong> {{ annonce.prix }} €
-                            </p>
-                            <a href="{{ path('app_details_annonce', { 'id': annonce.id }) }}" class="btn btn-info">Détails</a>
+                    <div class="card h-100 shadow-sm">
+                        <div class="position-relative">
+                            <img src="{{ asset('uploads/' ~ annonce.photo) }}" class="card-img-top" alt="{{ annonce.nom }}" style="height: 200px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 bg-primary text-white px-2 py-1 m-2 rounded">
+                                {{ annonce.prix }} €
+                            </div>
                         </div>
-                        <div class="card-footer text-muted">
-                            Mis en ligne le: {{ annonce.dateEnvoi | date('d-m-Y à H:i:s') }}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold">{{ annonce.nom | capitalize }}</h5>
+                            <div class="mb-2">
+                                {% if annonce.type == 'location' %}
+                                    <span class="badge bg-warning text-dark">{{ annonce.type | capitalize }}</span>
+                                {% else %}
+                                    <span class="badge bg-success text-white">{{ annonce.type | capitalize }}</span>
+                                {% endif %}
+                            </div>
+                            <p class="card-text flex-grow-1">
+                                {{ annonce.description | slice(0, 100) ~ '...' }}
+                            </p>
+
+                            <!-- Affichage de la note moyenne -->
+                            <div class="mb-3">
+                                <strong>Note:</strong>
+                                {% if averageRating > 0 %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-warning">
+                                            {% for i in 1..5 %}
+                                                {% if i <= averageRating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span class="ms-2">{{ averageRating }} / 5</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">Pas d'évaluation</span>
+                                {% endif %}
+                            </div>
+
+                            <a href="{{ path('app_details_annonce', { 'id': annonce.id }) }}" class="btn btn-primary w-100">
+                                <i class="bi bi-eye me-2"></i>Voir les détails
+                            </a>
                         </div>
                     </div>
                 </div>
-            {% else %}
-                <p>Aucune annonce trouvée.</p>
             {% endfor %}
         </div>
+        
+        {% if annonces is empty %}
+            <div class="alert alert-info text-center mt-4">
+                <i class="bi bi-info-circle-fill me-2"></i>Aucune annonce ne correspond à vos critères
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

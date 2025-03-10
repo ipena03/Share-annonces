@@ -4,39 +4,48 @@
 {% block title %}{{ parent() }} Logs d'activités{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">Logs d'activités</h1>
+<div class="container py-4 my-4">
+    <h1 class="text-center mt-4 pt-4 display-1 fw-bold">Logs d'activités</h1>
+    <h2 class="text-center mb-4 pb-3 display-2">historique des actions</h2>
+    
+    <div class="text-center mb-4">
+        <i class="bi bi-clock-history text-primary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-list-check text-secondary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-shield-lock text-success fs-1 mx-2 icon-animation"></i>
+    </div>
 
     {# Formulaire de filtrage et tri #}
     <div class="row justify-content-center mb-4">
-        <div class="col-12 col-md-8 bg-white p-4 m-0 text-primary">
+        <div class="col-12 col-lg-10 bg-white p-4 rounded-3 shadow-sm">
             <form method="get" action="{{ path('admin_logs') }}">
                 <div class="row mb-3">
-                    <div class="col">
-                        <label for="actionFilter">Filtrer par action</label>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="actionFilter" class="form-label fw-bold">Filtrer par action</label>
                         <select class="form-control" name="action" id="actionFilter">
                             <option value="">Toutes les actions</option>
-                            <option value="connexion" {% if actionFilter == 'connexion' %}selected{% endif %}>Connexions</option>
                             <option value="ajout_annonce" {% if actionFilter == 'ajout_annonce' %}selected{% endif %}>Ajouts d'annonces</option>
+                            <option value="modification_annonce" {% if actionFilter == 'modification_annonce' %}selected{% endif %}>Modifications d'annonces</option>
                             <option value="suppression_annonce" {% if actionFilter == 'suppression_annonce' %}selected{% endif %}>Suppressions d'annonces</option>
                         </select>
                     </div>
-                    <div class="col">
-                        <label for="sortBy">Trier par</label>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="sortBy" class="form-label fw-bold">Trier par</label>
                         <select class="form-control" name="sort_by" id="sortBy">
                             <option value="timestamp" {% if sort_by == 'timestamp' %}selected{% endif %}>Date</option>
                             <option value="action" {% if sort_by == 'action' %}selected{% endif %}>Action</option>
                         </select>
                     </div>
-                    <div class="col">
-                        <label for="sortOrder">Ordre</label>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="sortOrder" class="form-label fw-bold">Ordre</label>
                         <select class="form-control" name="sort_order" id="sortOrder">
                             <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Croissant</option>
                             <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Décroissant</option>
                         </select>
                     </div>
-                    <div class="col d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-filter me-2"></i>Filtrer
+                        </button>
                     </div>
                 </div>
             </form>
@@ -45,30 +54,49 @@
 
     {# Tableau des logs #}
     <div class="row justify-content-center">
-        <div class="col-12 col-md-8 bg-white p-4 m-0 text-primary">
+        <div class="col-12 col-lg-10 bg-white p-4 rounded-3 shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
-                        <tr class="fw-bold text-primary">
-                            <th scope="col">ID</th>
-                            <th scope="col">Action</th>
-                            <th scope="col">Utilisateur</th>
-                            <th scope="col">Timestamp</th>
-                            <th scope="col">Détails</th>
+                        <tr class="table-primary">
+                            <th scope="col" class="fw-bold">ID</th>
+                            <th scope="col" class="fw-bold">Action</th>
+                            <th scope="col" class="fw-bold">Utilisateur</th>
+                            <th scope="col" class="fw-bold">Timestamp</th>
+                            <th scope="col" class="fw-bold">Détails</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for log in logs %}
-                        <tr class="{{ cycle(['table-primary', 'table-secondary'], loop.index0) }}">
+                        <tr class="{{ cycle(['', 'table-light'], loop.index0) }}">
                             <td>{{ log.id }}</td>
-                            <td>{{ log.action }}</td>
-                            <td>{{ log.username }}</td>
-                            <td>{{ log.timestamp|date('d-m-Y à H:i:s') }}</td>
+                            <td>
+                                {% if log.action == 'ajout_annonce' %}
+                                    <span class="badge bg-success">{{ log.action }}</span>
+                                {% elseif log.action == 'modification_annonce' %}
+                                    <span class="badge bg-warning">{{ log.action }}</span>
+                                {% elseif log.action == 'suppression_annonce' %}
+                                    <span class="badge bg-danger">{{ log.action }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ log.action }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="bi bi-person-circle me-1"></i>
+                                {{ log.username }}
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar-date me-1"></i>
+                                {{ log.timestamp|date('d-m-Y à H:i:s') }}
+                            </td>
                             <td>{{ log.details }}</td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center">Aucun log trouvé.</td>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="bi bi-exclamation-circle me-2 fs-4"></i>
+                                Aucun log trouvé.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

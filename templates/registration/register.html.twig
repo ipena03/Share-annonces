@@ -7,26 +7,131 @@ Inscription
 
 {% block body %}
 <div class="container-fluid">
-<h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">Inscription</h1>
-</h1>
-<div class="row justify-content-center">
-<div class="col-12 col-md-6 bg-white p-4 m-0 text-primary">
+    <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">Inscription</h1>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 bg-white p-4 m-0 text-primary">
+            {{ form_errors(registrationForm) }}
 
+            {{ form_start(registrationForm) }}
+                
+                {{ form_row(registrationForm.prenom) }}
+                {{ form_row(registrationForm.nom) }}
+                {{ form_row(registrationForm.email) }}
+                
+                {# Afficher les exigences de mot de passe avant le champ de mot de passe #}
+                <div class="password-requirements mb-3">
+                    <h6 class="mb-2">Exigences du mot de passe :</h6>
+                    <div class="requirements-container">
+                        <div class="requirement-item">
+                            <i class="requirement-icon fa fa-square-o text-danger"></i>
+                            <span>12 caractères</span>
+                        </div>
+                        <div class="requirement-item">
+                            <i class="requirement-icon fa fa-square-o text-danger"></i>
+                            <span>Majuscule</span>
+                        </div>
+                        <div class="requirement-item">
+                            <i class="requirement-icon fa fa-square-o text-danger"></i>
+                            <span>Chiffre</span>
+                        </div>
+                        <div class="requirement-item">
+                            <i class="requirement-icon fa fa-square-o text-danger"></i>
+                            <span>Caractère spécial</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {{ form_row(registrationForm.password) }}
+                {{ form_row(registrationForm.agreeTerms) }}
 
-    {{ form_errors(registrationForm) }}
-
-   {{ form_start(registrationForm) }}
-            
-            {{ form_row(registrationForm.prenom) }}
-            {{ form_row(registrationForm.nom) }}
-            {{ form_row(registrationForm.email) }}
-            {{ form_row(registrationForm.plainPassword) }}
-            {{ form_row(registrationForm.agreeTerms) }}
-
-            <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
-            
+                <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
+                
             {{ form_end(registrationForm) }}
+        </div>
     </div>
 </div>
-</div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .password-requirements {
+            border-left: 3px solid #ddd;
+            padding-left: 10px;
+        }
+        .requirements-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .requirement-item {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .requirement-icon {
+            margin-right: 5px;
+            font-size: 1.2em;
+        }
+        .text-success {
+            color: #28a745;
+        }
+        .text-danger {
+            color: #dc3545;
+        }
+    </style>
+    {# Inclure Font Awesome pour les icônes #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Définir les critères de validation avec leurs expressions régulières
+            const criteria = [
+                { regex: /.{12,}/, element: document.querySelectorAll('.requirement-item')[0] },
+                { regex: /[A-Z]/, element: document.querySelectorAll('.requirement-item')[1] },
+                { regex: /[0-9]/, element: document.querySelectorAll('.requirement-item')[2] },
+                { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, element: document.querySelectorAll('.requirement-item')[3] }
+            ];
+            
+            // Trouver le champ de mot de passe
+            // Essayer plusieurs sélecteurs possibles
+            const passwordField = document.querySelector('#registration_form_password_first') || 
+                                  document.querySelector('[name="registration_form[password][first]"]') ||
+                                  document.querySelector('input[type="password"]');
+            
+            // Vérifier si le champ de mot de passe a été trouvé
+            if (!passwordField) {
+                console.error("Champ de mot de passe non trouvé!");
+                return;
+            }
+            
+            console.log("Champ de mot de passe trouvé:", passwordField);
+            
+            // Fonction pour vérifier chaque critère et mettre à jour l'interface
+            function checkPasswordRequirements(password) {
+                criteria.forEach((criterion, index) => {
+                    const icon = criterion.element.querySelector('.requirement-icon');
+                    
+                    if (criterion.regex.test(password)) {
+                        // Exigence remplie
+                        icon.className = 'requirement-icon fa fa-check-square-o text-success';
+                    } else {
+                        // Exigence non remplie
+                        icon.className = 'requirement-icon fa fa-square-o text-danger';
+                    }
+                });
+            }
+            
+            // Écouter les modifications du champ de mot de passe
+            passwordField.addEventListener('input', function() {
+                checkPasswordRequirements(this.value);
+            });
+            
+            // Initialiser la vérification si le champ contient déjà une valeur
+            checkPasswordRequirements(passwordField.value);
+        });
+    </script>
 {% endblock %}

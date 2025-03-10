@@ -23,11 +23,10 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var string $plainPassword */
-            $plainPassword = $form->get('plainPassword')->getData();
+       
     
             // Encode the plain password
-            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+            $user->setPassword($userPasswordHasher->hashPassword($user, $user->getPassword()));
     
             // Définir la date d'envoi avant de persister l'utilisateur
             $user->setDateEnvoi(new \DateTime());

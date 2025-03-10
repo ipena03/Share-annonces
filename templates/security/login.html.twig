@@ -34,16 +34,18 @@
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                     <div class="text-center">
-                        <div class="checkbox mb-3">
-                            <label>
-                                <input type="checkbox" name="_remember_me"> Se souvenir de moi
-                            </label>
+                        {# Le captcha généré localement #}
+                        <div class="form-group">
+                            <label for="captchaInput">Entrez le captcha:</label>
+                            <input type="text" id="captchaInput" placeholder="Captcha" class="form-control" required>
                         </div>
 
-                        {# reCAPTCHA affiché immédiatement #}
-                        <div class="g-recaptcha" data-sitekey="{{ google_recaptcha_site_key }}"></div>
+                        <div class="captcha-container text-center mt-2">
+                            <div id="captcha" style="font-size: 24px; font-weight: bold; background-color: #f1f1f1; padding: 10px; border: 1px solid #ddd;"></div>
+                            <button type="button" class="btn btn-secondary mt-2" onclick="generateCaptcha()">Rafraîchir le captcha</button>
+                        </div>
 
-                        <button class="btn btn-lg btn-primary mt-2" type="submit">
+                        <button class="btn btn-lg btn-primary mt-4" type="submit">
                             Se connecter
                         </button>
                     </div>
@@ -52,6 +54,21 @@
         </div>
     </div>
 
-    {# Inclure le script de reCAPTCHA #}
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    {# Script pour générer et valider le captcha #}
+    <script>
+        let captchaCode = '';
+
+        // Fonction pour générer un captcha aléatoire
+        function generateCaptcha() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            captchaCode = '';
+            for (let i = 0; i < 6; i++) {
+                captchaCode += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            document.getElementById('captcha').textContent = captchaCode;
+        }
+
+        // Appel de la fonction pour générer un captcha au chargement de la page
+        generateCaptcha();
+    </script>
 {% endblock %}

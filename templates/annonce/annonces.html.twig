@@ -1,14 +1,32 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}{{parent()}}annonce{% endblock %}
+
 {% block body %}
-
-<div class="container-fluid">
- <div class="row justify-content-center">
- <div class="col-10 text-primary">
-<h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold"> annonce</h1>
-{{form(form)}}
-</div>
- </div>
-</div>
-
+    <div class="container py-4 my-4">
+        <h1 class="text-center mt-4 pt-4 display-1 fw-bold">Annonce</h1>
+        <h2 class="text-center mb-4 pb-4 display-2">publiez votre offre</h2>
+        
+        <div class="text-center mb-4">
+            <i class="bi bi-plus-circle-fill text-primary fs-1 mx-2 icon-animation"></i>
+            <i class="bi bi-megaphone-fill text-secondary fs-1 mx-2 icon-animation"></i>
+            <i class="bi bi-lightning-fill text-success fs-1 mx-2 icon-animation"></i>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        {# Utilisation de la méthode simple du formulaire #}
+                        {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                        
+                        {# Le formulaire entier est rendu tel quel pour éviter les erreurs #}
+                        {{ form_widget(form) }}
+                        
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

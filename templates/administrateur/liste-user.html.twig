@@ -3,30 +3,63 @@
 {% block title %}{{ parent() }} Liste des users{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold">Liste des users</h1>
+<div class="container py-4 my-4">
+    <h1 class="text-center mt-4 pt-4 display-1 fw-bold">Liste des users</h1>
+    <h2 class="text-center mb-4 pb-4 display-2">gestion des comptes</h2>
+    
+    <div class="text-center mb-4">
+        <i class="bi bi-people-fill text-primary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-person-badge-fill text-secondary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-shield-lock-fill text-success fs-1 mx-2 icon-animation"></i>
+    </div>
+    
     <div class="row justify-content-center">
-        <div class="col-12 col-md-8 bg-white p-4 m-0 text-primary">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr class="fw-bold text-primary">
-                            <th scope="col">Email</th>
-                            <th scope="col">roles</th>
-                            <th scope="col">Date d'inscription</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users  |sort((a, b) =>b.dateEnvoi <=> a.dateEnvoi) %}
-                        <tr class="{{ cycle(['table-primary', 'table-secondary'], loop.index0) }}">
-                            <td>{{ user.email | lower }}</td>
-                            <td>{{ user.roles | join(', ') | lower }}</td>
-                            <td>{{ user.dateEnvoi |date("d-m-Y à H:i:s") }}</td>
-
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="col-12 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="bg-primary text-white">
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Rôles</th>
+                                    <th scope="col">Date d'inscription</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users|sort((a, b) => b.dateEnvoi <=> a.dateEnvoi) %}
+                                <tr class="{{ cycle(['table-light', 'bg-white'], loop.index0) }}">
+                                    <td>
+                                        <i class="bi bi-envelope-fill me-2 text-primary"></i>
+                                        {{ user.email | lower }}
+                                    </td>
+                                    <td>
+                                        {% if 'ROLE_ADMIN' in user.roles %}
+                                            <span class="badge bg-danger text-white">Admin</span>
+                                        {% elseif 'ROLE_MOD' in user.roles %}
+                                            <span class="badge bg-warning text-white">Modérateur</span>
+                                        {% else %}
+                                            <span class="badge bg-info text-white">Utilisateur</span>
+                                        {% endif %}
+                                        <span class="text-muted small ms-2">{{ user.roles | join(', ') | lower }}</span>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-calendar-date me-2 text-primary"></i>
+                                        {{ user.dateEnvoi |date("d-m-Y à H:i:s") }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <div class="badge bg-info text-white p-2">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Total des utilisateurs: {{ users|length }}
+                </div>
             </div>
         </div>
     </div>

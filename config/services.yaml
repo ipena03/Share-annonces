@@ -1,9 +1,9 @@
+# Définir les paramètres au même niveau que services
 services:
     _defaults:
         autowire: true
         autoconfigure: true
     
-
     App\:
         resource: '../src/'
         exclude:

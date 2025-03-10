@@ -1,12 +1,59 @@
 {% extends 'base.html.twig' %}
-{% block title %}{{parent()}}Fichier{% endblock %}
+
+{% block title %}{{ parent() }}Fichier{% endblock %}
+
 {% block body %}
-<div class="container-fluid">
- <div class="row justify-content-center">
- <div class="col-10 text-primary">
-<h1 class="text-center text-primary mt-4 pt-4 display-1 fw-bold"> Fichier</h1>
-{{form(form)}}
-</div>
- </div>
+<div class="container py-4 my-4">
+    <h1 class="text-center mt-4 pt-4 display-1 fw-bold">Fichier</h1>
+    <h2 class="text-center mb-4 pb-3 display-2">ajout et gestion</h2>
+    
+    <div class="text-center mb-4">
+        <i class="bi bi-file-earmark-plus text-primary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-cloud-upload text-secondary fs-1 mx-2 icon-animation"></i>
+        <i class="bi bi-folder-check text-success fs-1 mx-2 icon-animation"></i>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8 bg-white p-4 rounded-3 shadow-sm">
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                
+                {% if form.name is defined %}
+                <div class="mb-3">
+                    {{ form_label(form.name, 'Nom du fichier', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le nom du fichier'}}) }}
+                    {{ form_errors(form.name) }}
+                </div>
+                {% endif %}
+                
+                {% if form.file is defined %}
+                <div class="mb-3">
+                    {{ form_label(form.file, 'Sélectionner un fichier', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(form.file, {'attr': {'class': 'form-control'}}) }}
+                        <span class="input-group-text"><i class="bi bi-upload"></i></span>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Formats supportés: PDF, DOCX, XLSX, PNG, JPEG, etc.
+                    </div>
+                    {{ form_errors(form.file) }}
+                </div>
+                {% endif %}
+                
+                {% if form.description is defined %}
+                <div class="mb-3">
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Entrez une description du fichier', 'rows': '4'}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+                {% endif %}
+                
+                {# Affiche tous les autres champs non gérés explicitement #}
+                {{ form_rest(form) }}
+                
+               
+            {{ form_end(form) }}
+        </div>
+    </div>
 </div>
 {% endblock %}
